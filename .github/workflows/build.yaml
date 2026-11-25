@@ -20,6 +20,7 @@ jobs:
       - name: Build Xcode Project
         run: |
           xcodebuild clean build \
+            -skipPackagePluginValidation \
             -project "Open UI.xcodeproj" \
             -scheme "Open UI" \
             -configuration Release \
