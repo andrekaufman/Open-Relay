@@ -24,7 +24,7 @@ jobs:
             -project "Open UI.xcodeproj" \
             -scheme "Open UI" \
             -configuration Release \
-            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
             -derivedDataPath build \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
