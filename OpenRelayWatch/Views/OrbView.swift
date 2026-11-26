@@ -13,7 +13,7 @@ struct OrbView: View {
     @State private var smoothed: Double = 0
 
     var body: some View {
-        TimelineView(.animation(minimumInterval: 1 / 30, paused: reduced || mode == .idle)) { context in
+        TimelineView(timelineSchedule) { context in
             let t = context.date.timeIntervalSinceReferenceDate
             let breathe = 0.5 + 0.5 * sin(t * 2.2)
             orb(t: t, breathe: breathe)
@@ -24,6 +24,10 @@ struct OrbView: View {
         }
         .animation(.easeOut(duration: 0.12), value: smoothed)
         .animation(.easeInOut(duration: 0.3), value: mode)
+    }
+
+    private var timelineSchedule: AnimationTimelineSchedule {
+        .animation(minimumInterval: 1.0 / 30.0, paused: reduced || mode == .idle)
     }
 
     private func orb(t: Double, breathe: Double) -> some View {
