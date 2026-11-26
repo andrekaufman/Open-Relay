@@ -16,31 +16,7 @@ struct OrbView: View {
         TimelineView(.animation(minimumInterval: 1 / 30, paused: reduced || mode == .idle)) { context in
             let t = context.date.timeIntervalSinceReferenceDate
             let breathe = 0.5 + 0.5 * sin(t * 2.2)
-            ZStack {
-                if mode == .speaking && !reduced {
-                    ForEach(0..<2, id: \.self) { i in
-                        let phase = (t * 0.8 + Double(i) * 0.5).truncatingRemainder(dividingBy: 1)
-                        Circle()
-                            .stroke(color.opacity(0.35 * (1 - phase)), lineWidth: 2)
-                            .scaleEffect(0.85 + phase * 0.3)
-                    }
-                }
-                Circle()
-                    .fill(RadialGradient(colors: [color.opacity(0.95), color.opacity(0.35)],
-                                         center: .center, startRadius: 4, endRadius: 50))
-                    .scaleEffect(reduced ? 0.82 : scale(t: t, breathe: breathe))
-                if mode == .thinking && !reduced {
-                    Circle()
-                        .trim(from: 0, to: 0.3)
-                        .stroke(Color.white.opacity(0.6), style: StrokeStyle(lineWidth: 3, lineCap: .round))
-                        .rotationEffect(.degrees(t * 120))
-                        .scaleEffect(0.95)
-                } else {
-                    Circle()
-                        .stroke(color.opacity(0.4), lineWidth: 2)
-                        .scaleEffect(reduced ? 0.9 : 0.95 + breathe * 0.03)
-                }
-            }
+            orb(t: t, breathe: breathe)
         }
         .onChange(of: level) { _, new in
             // Fast rise, slower fall.
@@ -48,6 +24,54 @@ struct OrbView: View {
         }
         .animation(.easeOut(duration: 0.12), value: smoothed)
         .animation(.easeInOut(duration: 0.3), value: mode)
+    }
+
+    private func orb(t: Double, breathe: Double) -> some View {
+        ZStack {
+            speakingRipples(t: t)
+            orbCore(t: t, breathe: breathe)
+            thinkingArc(t: t)
+            outerRing(breathe: breathe)
+        }
+    }
+
+    @ViewBuilder
+    private func speakingRipples(t: Double) -> some View {
+        if mode == .speaking && !reduced {
+            ForEach(0..<2, id: \.self) { i in
+                let phase = (t * 0.8 + Double(i) * 0.5).truncatingRemainder(dividingBy: 1)
+                Circle()
+                    .stroke(color.opacity(0.35 * (1 - phase)), lineWidth: 2)
+                    .scaleEffect(0.85 + phase * 0.3)
+            }
+        }
+    }
+
+    private func orbCore(t: Double, breathe: Double) -> some View {
+        Circle()
+            .fill(RadialGradient(colors: [color.opacity(0.95), color.opacity(0.35)],
+                                 center: .center, startRadius: 4, endRadius: 50))
+            .scaleEffect(reduced ? 0.82 : scale(t: t, breathe: breathe))
+    }
+
+    @ViewBuilder
+    private func thinkingArc(t: Double) -> some View {
+        if mode == .thinking && !reduced {
+            Circle()
+                .trim(from: 0, to: 0.3)
+                .stroke(Color.white.opacity(0.6), style: StrokeStyle(lineWidth: 3, lineCap: .round))
+                .rotationEffect(.degrees(t * 120))
+                .scaleEffect(0.95)
+        }
+    }
+
+    @ViewBuilder
+    private func outerRing(breathe: Double) -> some View {
+        if mode != .thinking || reduced {
+            Circle()
+                .stroke(color.opacity(0.4), lineWidth: 2)
+                .scaleEffect(reduced ? 0.9 : 0.95 + breathe * 0.03)
+        }
     }
 
     private func scale(t: Double, breathe: Double) -> Double {
