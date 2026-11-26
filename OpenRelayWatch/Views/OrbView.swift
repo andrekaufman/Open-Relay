@@ -13,17 +13,25 @@ struct OrbView: View {
     @State private var smoothed: Double = 0
 
     var body: some View {
+        animatedOrb
+            .onChange(of: level) { _, new in
+                // Fast rise, slower fall.
+                smoothed = new > smoothed ? smoothed * 0.4 + new * 0.6 : smoothed * 0.8 + new * 0.2
+            }
+            .animation(.easeOut(duration: 0.12), value: smoothed)
+            .animation(.easeInOut(duration: 0.3), value: mode)
+    }
+
+    private var animatedOrb: some View {
         TimelineView(timelineSchedule) { context in
-            let t = context.date.timeIntervalSinceReferenceDate
-            let breathe = 0.5 + 0.5 * sin(t * 2.2)
-            orb(t: t, breathe: breathe)
+            timelineOrb(at: context.date)
         }
-        .onChange(of: level) { _, new in
-            // Fast rise, slower fall.
-            smoothed = new > smoothed ? smoothed * 0.4 + new * 0.6 : smoothed * 0.8 + new * 0.2
-        }
-        .animation(.easeOut(duration: 0.12), value: smoothed)
-        .animation(.easeInOut(duration: 0.3), value: mode)
+    }
+
+    private func timelineOrb(at date: Date) -> some View {
+        let t = date.timeIntervalSinceReferenceDate
+        let breathe = 0.5 + 0.5 * sin(t * 2.2)
+        return orb(t: t, breathe: breathe)
     }
 
     private var timelineSchedule: AnimationTimelineSchedule {
